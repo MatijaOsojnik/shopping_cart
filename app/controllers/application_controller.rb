@@ -1,8 +1,5 @@
 class ApplicationController < ActionController::API
-    before_action :authorized
-
     def encode_token(payload)
-        
         JWT.encode(payload, Rails.application.credentials.dig(:jwt, :jwt_secret_key), 'HS256')
     end
 
@@ -17,7 +14,7 @@ class ApplicationController < ActionController::API
         # header: { 'Authorization': 'Bearer <token>' }
         begin
             JWT.decode(token, Rails.application.credentials.dig(:jwt, :jwt_secret_key), true, algorithm: 'HS256')
-        rescue JWT::ExpiredSignature
+        rescue JWT::DecodeError
             #Logout user
             render json: { error: "Token expired."}
         end

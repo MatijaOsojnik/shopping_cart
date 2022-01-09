@@ -7,9 +7,11 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :items
       resources :carts
-      get 'cart/create'
+      resources :cart_items
       post 'users/sign_up', to: 'users#sign_up'
       post 'users/sign_in', to: 'users#sign_in'
+
+      post 'carts/add_to_cart', to: 'carts#add_to_cart' 
     end
   end
 end

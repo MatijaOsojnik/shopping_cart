@@ -29,14 +29,13 @@ class Api::V1::UsersController < ApplicationController
         token = encode_token({user_id: @user.id, exp: exp})
 
         cart = Cart.find_by(user_id: @user.id)
-        
         if !cart
             cart = Cart.create
             cart.user_id = @user.id
             cart.save
         end
 
-        render json: {user: @user, token: token}
+        render json: {user: @user, cart: cart, token: token}
         else
         render json: {error: "Invalid username or password"}
         end
