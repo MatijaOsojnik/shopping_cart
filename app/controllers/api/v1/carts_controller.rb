@@ -1,5 +1,6 @@
 class Api::V1::CartsController < ApplicationController
   before_action :authorized, except: [:create]
+  after_action :aws_user_cart_report, only: [:create, :update, :delete]
 
   def show
     @cart = Cart.find_by(user_id: params[:user_id])

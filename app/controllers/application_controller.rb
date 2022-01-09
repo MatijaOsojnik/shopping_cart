@@ -35,4 +35,10 @@ class ApplicationController < ActionController::API
     def authorized
         render json: { message: 'Please log in' }, status: :unauthorized unless logged_in?
     end
+
+    #AWS CSV upload 
+
+    def aws_user_cart
+
+    end
 end
