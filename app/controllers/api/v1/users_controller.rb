@@ -7,10 +7,11 @@ class Api::V1::UsersController < ApplicationController
         if !user_exists
             @user = User.create(user_params)
             if @user.valid?
-            token = encode_token({user_id: @user.id})
+            exp = Time.now.to_i + 4 * 3600
+            token = encode_token({user_id: @user.id, exp: exp})
             render json: {user: @user, token: token}
             else
-            render json: {error: "Error registering"}
+            render json: {error: "Error creating a new user"}
             end
         else
             render json: {error: "User with this username already exists"}
@@ -22,7 +23,8 @@ class Api::V1::UsersController < ApplicationController
         @user = User.find_by(username: params[:username])
 
         if @user && @user.authenticate(params[:password])
-        token = encode_token({user_id: @user.id})
+        exp = Time.now.to_i + 4 * 3600
+        token = encode_token({user_id: @user.id, exp: exp})
         render json: {user: @user, token: token}
         else
         render json: {error: "Invalid username or password"}
