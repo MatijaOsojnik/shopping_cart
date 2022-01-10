@@ -12,6 +12,8 @@ Rails.application.routes.draw do
       post 'users/sign_in', to: 'users#sign_in'
 
       post 'carts/add_to_cart', to: 'carts#add_to_cart' 
+      delete 'carts/remove_from_cart', to: 'carts#remove_from_cart'
+      delete 'carts/clear_cart', to: 'carts#clear_cart'
     end
   end
 end

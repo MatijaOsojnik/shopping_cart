@@ -16,7 +16,7 @@ class ApplicationController < ActionController::API
             JWT.decode(token, Rails.application.credentials.dig(:jwt, :jwt_secret_key), true, algorithm: 'HS256')
         rescue JWT::DecodeError
             #Logout user
-            render json: { error: "Token expired."}
+            render json: { error: "Token expired." }
         end
         end
     end
@@ -24,7 +24,7 @@ class ApplicationController < ActionController::API
     def logged_in_user
         if decoded_token
         user_id = decoded_token[0]['user_id']
-        @user = User.find_by(id: user_id)
+        @user = User.select(:id, :username).find_by_id(user_id)
         end
     end
 
@@ -33,12 +33,20 @@ class ApplicationController < ActionController::API
     end
 
     def authorized
-        render json: { message: 'Please log in' }, status: :unauthorized unless logged_in?
+        render json: { error: 'You are not authorized for this action' }, status: :unauthorized unless logged_in?
     end
 
     #AWS CSV upload 
 
-    def aws_user_cart
+    def parse_user_cart_report
+        CSV.open("path/to/file.csv", "wb") do |csv|
+            csv << Cart.attribute_names
+            user = User.find_by_id(user_id) 
+            csv << user.attributes.values
+        end     
+    end
 
+    def read_user_cart_report
+        #TO be written later
     end
 end
