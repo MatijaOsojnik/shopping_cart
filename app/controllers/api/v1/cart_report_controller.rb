@@ -1,4 +1,5 @@
 require 'csv'
+require 'aws-sdk-s3'
 
 class Api::V1::CartReportController < ApplicationController
   before_action :authorized, except: [:index, :show]
@@ -22,10 +23,13 @@ class Api::V1::CartReportController < ApplicationController
     cart_info.push(current_user.name, current_user.surname, @cart.total_price, items.join(", "), @cart.updated_at)
 
     headers = ["Name", "Surname", "Total Price", "Items", "Last Updated"]
-    CSV.open("shopping_cart.csv", "w") do |csv|
+
+    cart_csv = CSV.generate do |csv|
         csv << headers
         csv << cart_info
     end
+
+    puts cart_csv
   end
 
 #   private
