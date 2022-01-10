@@ -14,6 +14,8 @@ Rails.application.routes.draw do
       post 'carts/add_to_cart', to: 'carts#add_to_cart' 
       delete 'carts/remove_from_cart', to: 'carts#remove_from_cart'
       delete 'carts/clear_cart', to: 'carts#clear_cart'
+
+      post 'create_csv', to: 'cart_report#export'
     end
   end
 end

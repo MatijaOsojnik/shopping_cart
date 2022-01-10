@@ -11,7 +11,7 @@ class Api::V1::UsersController < ApplicationController
             cart = Cart.create
             cart.user_id = @user.id
             cart.save
-            render json: {user: @user, token: token}
+            render json: {token: token}
             else
             render json: {error: "Error creating a new user"}
             end
@@ -35,7 +35,7 @@ class Api::V1::UsersController < ApplicationController
             cart.save
         end
 
-        render json: {user: @user, cart: cart, token: token}
+        render json: {cart: cart, token: token}
         else
         render json: {error: "Invalid username or password"}
         end
@@ -44,6 +44,6 @@ class Api::V1::UsersController < ApplicationController
     private
 
     def user_params
-        params.permit(:username, :password)
+        params.permit(:username, :password, :name, :surname, :email, :phone)
     end
 end

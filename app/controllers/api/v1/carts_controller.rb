@@ -3,7 +3,7 @@ class Api::V1::CartsController < ApplicationController
   # after_action :aws_user_cart_report, only: [:create, :update, :delete, :add_to_cart]
 
   def show
-    user = logged_in_user
+    user = current_user
     @cart = Cart.find_by(user_id: user.id)
     if @cart
       render json: @cart.as_json(include: {cart_items: {include: :item}})
@@ -20,7 +20,7 @@ class Api::V1::CartsController < ApplicationController
 
   def add_to_cart
     begin
-      user = logged_in_user
+      user = current_user
       cart = Cart.find_by(user_id: user.id)
       item = Item.find_by_id(params[:item_id])
 
@@ -28,7 +28,12 @@ class Api::V1::CartsController < ApplicationController
 
       if CartItem.exists?(cart_id: cart.id, item_id: item.id)
         @cart_items = CartItem.find_by(cart_id: cart.id, item_id: item.id)
-        @cart_items.quantity+=params[:quantity]
+        if @cart_items.quantity+params[:quantity] <= item.stock
+          @cart_items.quantity+=params[:quantity]
+        else
+          render json: {error: "The quantity is larger than the item stock"}
+          return true
+        end
       else
         @cart_items = CartItem.new(cart_id: cart.id, item_id: item.id, quantity: params[:quantity])
       end
@@ -42,7 +47,7 @@ class Api::V1::CartsController < ApplicationController
 
   def remove_from_cart
     begin
-      user = logged_in_user
+      user = current_user
       cart = Cart.find_by(user_id: user.id)
       item = Item.find_by_id(params[:item_id])
   
@@ -55,11 +60,25 @@ class Api::V1::CartsController < ApplicationController
   end
 
   def update_quantity
+    begin
+      user = current_user
+      cart = Cart.find_by(user_id: user.id)
+      for item in params[:items] do
+        cart_item = CartItem.find_by(cart_id: cart.id, item_id: item.id)
+        if item.quantity <= cart_item.item.stock
+          cart_item.quantity = item.quantity
+          cart_item.save
+        end
+      end
+      render json: {message: "Successfuly updated cart."}
+    rescue StandardError => e
+      render json: {error: "Error updating cart."}
+    end
   end
 
   def clear_cart
     begin
-      user = logged_in_user
+      user = current_user
       cart = Cart.find_by(user_id: user.id)
       CartItem.find_by(cart_id: cart.id).destroy_all
       render json: {messsage: "Successfuly cleared cart"}

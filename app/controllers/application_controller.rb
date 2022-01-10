@@ -17,19 +17,20 @@ class ApplicationController < ActionController::API
         rescue JWT::DecodeError
             #Logout user
             render json: { error: "Token expired." }
+            return true
         end
         end
     end
 
-    def logged_in_user
+    def current_user
         if decoded_token
         user_id = decoded_token[0]['user_id']
-        @user = User.select(:id, :username).find_by_id(user_id)
+        @user = User.select(:id, :username, :name, :surname, :email, :phone).find_by_id(user_id)
         end
     end
 
     def logged_in?
-        !!logged_in_user
+        !!current_user
     end
 
     def authorized
