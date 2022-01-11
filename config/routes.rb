@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :items
-      resources :carts
+      resources :carts, except: [:destroy, :update]
       resources :cart_items
       post "users/sign_up", to: "users#sign_up"
       post "users/sign_in", to: "users#sign_in"
@@ -14,9 +14,13 @@ Rails.application.routes.draw do
       post "carts/add_to_cart", to: "carts#add_to_cart"
       delete "carts/remove_from_cart", to: "carts#remove_from_cart"
       delete "carts/clear_cart", to: "carts#clear_cart"
+      put "carts/update_quantity", to: "carts#update_quantity"
 
-      post "report", to: "cart_report#export"
-      get "report", to: "cart_report#download"
+      scope "/reports" do
+        post "cart", to: "carts#export_report"
+        get "cart", to: "carts#download"
+      end
+
     end
   end
 end

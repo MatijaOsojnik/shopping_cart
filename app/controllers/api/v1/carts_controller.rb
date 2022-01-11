@@ -1,6 +1,9 @@
+require "aws"
 class Api::V1::CartsController < ApplicationController
+  include AWS
+
   before_action :authorized, except: [:create]
-  # after_action :aws_user_cart_report, only: [:create, :update, :delete, :add_to_cart]
+  after_action :export_report, except: [:index, :show]
 
   def index
     user = current_user
@@ -33,8 +36,8 @@ class Api::V1::CartsController < ApplicationController
         if @cart_items.quantity + params[:quantity] <= item.stock
           @cart_items.quantity += params[:quantity]
         else
-          render json: { error: "The quantity is larger than the item stock" }
-          return true
+          render json: { error: "The cart item quantity is larger than the item stock" }
+          return
         end
       else
         @cart_items = CartItem.new(cart_id: user.cart.id, item_id: item.id, quantity: params[:quantity])
@@ -52,11 +55,18 @@ class Api::V1::CartsController < ApplicationController
       user = current_user
       item = Item.find_by_id(params[:item_id])
 
-      CartItem.find_by(cart_id: user.cart.id, item_id: item.id).destroy
+      cart_item = CartItem.find_by(cart_id: user.cart.id, item_id: item.id)
+
+      if cart_item
+        cart_item.destroy
+      else
+        render json: { error: "Item not found"}
+        return
+      end
 
       render json: { message: "Successfuly removed item from cart" }
     rescue StandardError => e
-      render json: { error: "Error adding item to cart" }
+      render json: { error: "Error removing item from cart" }
     end
   end
 
@@ -64,9 +74,10 @@ class Api::V1::CartsController < ApplicationController
     begin
       user = current_user
       for item in params[:items]
-        cart_item = CartItem.find_by(cart_id: user.cart.id, item_id: item.id)
-        if item.quantity <= cart_item.item.stock
-          cart_item.quantity = item.quantity
+        puts item[:id]
+        cart_item = CartItem.find_by(cart_id: user.cart.id, item_id: item[:id])
+        if cart_item && item[:quantity] <= cart_item.item.stock
+          cart_item.quantity = item[:quantity]
           cart_item.save
         end
       end
@@ -79,6 +90,15 @@ class Api::V1::CartsController < ApplicationController
   def clear_cart
     begin
       user = current_user
+
+      cart_items = CartItem.find_by(cart_id: user.cart.id)
+      
+      if cart_items
+        cart_items.destroy_all
+      else
+        render json: { error: "Cart already empty"}
+        return
+      end
       CartItem.find_by(cart_id: user.cart.id).destroy_all
       render json: { messsage: "Successfuly cleared cart" }
     rescue StandardError => e

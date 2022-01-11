@@ -1,21 +1,25 @@
 require 'csv'
 require 'aws-sdk-s3'
 
-class Api::V1::CartReportController < ApplicationController
-  before_action :authorized
-
-  def export
+module AWS
+    def export_report
     # @cart = Cart.where(user_id: current_user.id).as_json(include: {cart_items: {include: :item}})
     @cart = Cart.find_by(user_id: current_user.id)
     
     cart_info = []
     items = []
 
+    total_price = 0.0
+
     @cart.cart_items.each do |cart_item| 
-      items.push(cart_item.item.name)
+      items.push("#{cart_item.quantity} #{cart_item.item.name}")
+      total_price += cart_item.quantity * cart_item.item.price
     end
 
-    cart_info.push(current_user.name, current_user.surname, @cart.total_price, items.join(", "), @cart.updated_at)
+    @cart.total_price = total_price
+    @cart.save
+
+    cart_info.push(current_user.name, current_user.surname, "#{total_price}", items.join(", "), Time.now)
 
     headers = ["Name", "Surname", "Total Price", "Items", "Last Updated"]
 
