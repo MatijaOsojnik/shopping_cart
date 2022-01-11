@@ -8,12 +8,8 @@ class Api::V1::UsersController < ApplicationController
         exp = Time.now.to_i + 4 * 3600
         token = encode_token({ user_id: @user.id, exp: exp })
 
-        cart = Cart.create
-        cart.user_id = @user.id
+        cart = Cart.create(user_id: @user.id)
 
-        puts cart
-
-        cart.save
         render json: { token: token }
       else
         render json: { error: "Error creating a new user" }
@@ -33,12 +29,10 @@ class Api::V1::UsersController < ApplicationController
 
       cart = Cart.find_by(user_id: @user.id)
       if !cart
-        cart = Cart.create
-        cart.user_id = @user.id
-        cart.save
+        cart = Cart.create(user_id: @user.id)
       end
 
-      render json: { cart: cart, token: token }
+      render json: { token: token }
     else
       render json: { error: "Invalid username or password" }
     end

@@ -7,9 +7,7 @@ class Api::V1::CartsController < ApplicationController
 
   def index
     user = current_user
-
-    puts user.cart
-
+    
     if user.cart
       render json: user.cart.as_json(include: { cart_items: { include: :item } })
     else
@@ -17,8 +15,9 @@ class Api::V1::CartsController < ApplicationController
     end
   end
 
-  def create
+  def create(user_id)
     @cart = Cart.new
+    @cart.user_id = user.id
     @cart.save
     @cart
   end
