@@ -65,6 +65,7 @@ class Api::V1::CartReportController < ApplicationController
       body: document,
       key: object_key
     )
+    
     if response.etag
       return true
     else
@@ -76,13 +77,23 @@ class Api::V1::CartReportController < ApplicationController
   end
 
   def report_retrieved?(s3_client, bucket_name, object_key)
-    File.open('object_key', 'wb') do |file|
-      s3_client.get_object({
-        bucket: bucket_name,
-        key: object_key
-      }, target: file
-    )
-    end
+    
+    # table = CSV.parse(File.read(
+    #   s3_client.get_object(
+    #     bucket: bucket_name,
+    #     key: object_key
+    #   )
+    # )) 
+
+    data = s3_client.get_object(
+      bucket: bucket_name,
+      key: object_key
+    ).body.string
+
+    report_csv = CSV.parse(data, headers: true).map(&:to_h)
+
+    render json: report_csv.to_json
+    
     return true
     # if response.etag
     #   return true
