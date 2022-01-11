@@ -2,12 +2,7 @@ require 'csv'
 require 'aws-sdk-s3'
 
 class Api::V1::CartReportController < ApplicationController
-  before_action :authorized, except: [:index, :show]
-
-  def create
-    response = generate_direct_upload(blob_params)
-    render json: response
-  end
+  before_action :authorized
 
   def export
     # @cart = Cart.where(user_id: current_user.id).as_json(include: {cart_items: {include: :item}})
@@ -17,53 +12,85 @@ class Api::V1::CartReportController < ApplicationController
     items = []
 
     @cart.cart_items.each do |cart_item| 
-        items.push(cart_item.item.name)
+      items.push(cart_item.item.name)
     end
 
     cart_info.push(current_user.name, current_user.surname, @cart.total_price, items.join(", "), @cart.updated_at)
 
     headers = ["Name", "Surname", "Total Price", "Items", "Last Updated"]
 
-    cart_csv = CSV.generate do |csv|
-        csv << headers
-        csv << cart_info
+    storage_url = "storage/cart-#{current_user.id}.csv"
+
+    csv_report = CSV.generate do |csv|
+      csv << headers
+      csv << cart_info
     end
 
-    puts cart_csv
+    bucket_name = Rails.application.credentials.dig(:aws, :bucket)
+    region = "eu-central-1"
+ 
+    s3_client = Aws::S3::Client.new(
+    region: region,
+    access_key_id: Rails.application.credentials.dig(:aws, :access_key_id),
+    secret_access_key: Rails.application.credentials.dig(:aws, :secret_access_key),)
+  
+    if report_uploaded?(s3_client, csv_report, bucket_name, "cart-#{current_user.id}-#{current_user.name}-#{current_user.surname}.csv")
+      puts "Report uploaded."
+    else
+      puts "Report not uploaded."
+    end
   end
 
-#   private
-#   def blob_params
-#     params.require(:file).permit(:filename, :byte_size, :checksum, :content_type, metadata: {})
-#   end
+  def download
+    bucket_name = Rails.application.credentials.dig(:aws, :bucket)
+    region = "eu-central-1"
 
-#   def generate_direct_upload(blob_args)
-#     blob = create_blob(blob_args)
-#     response = signed_url(blob)
-#     response[:blob_signed_id] = blob.signed_id
-#     response
-#   end
+    s3_client = Aws::S3::Client.new(
+    region: region,
+    access_key_id: Rails.application.credentials.dig(:aws, :access_key_id),
+    secret_access_key: Rails.application.credentials.dig(:aws, :secret_access_key),)
+    
+    if report_retrieved?(s3_client, bucket_name, "cart-#{current_user.id}-#{current_user.name}-#{current_user.surname}.csv")
+      puts "Report retrieved."
+    else
+      puts "Report not retrieved."
+    end
+  end
 
-#   def create_blob(blob_args)
-#     blob = ActiveStorage::Blob.create_before_direct_upload!(blob_args.to_h.deep_symbolize_keys)
-#     report_id = SecureRandom.uuid # the name of the file will just be a UUID
-#     blob.update_attribute(:key, "uploads/#{report_id}") # will put it in the uploads folder
-#     blob
-#   end
+  private
 
-#   def signed_url(blob)
-#     expiration_time = 10.minutes
-#     response_signature(
-#       blob.service_url_for_direct_upload(expires_in: expiration_time),
-#       headers: blob.service_headers_for_direct_upload
-#     )
-#   end
+  def report_uploaded?(s3_client, document, bucket_name, object_key)
+    response = s3_client.put_object(
+      bucket: bucket_name,
+      body: document,
+      key: object_key
+    )
+    if response.etag
+      return true
+    else
+      return false
+    end
+    rescue StandardError => e
+      puts "Error uploading object: #{e.message}"
+      return false
+  end
 
-#   def response_signature(url, **params)
-#     {
-#       direct_upload: {
-#         url: url
-#       }.merge(params)
-#     }
-#   end
+  def report_retrieved?(s3_client, bucket_name, object_key)
+    File.open('object_key', 'wb') do |file|
+      s3_client.get_object({
+        bucket: bucket_name,
+        key: object_key
+      }, target: file
+    )
+    end
+    return true
+    # if response.etag
+    #   return true
+    # else
+    #   return false
+    # end
+  rescue StandardError => e
+    puts "Error retrieving object: #{e.message}"
+    return false
+  end
 end
