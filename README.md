@@ -8,7 +8,9 @@
 
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
+- [Extra Gems](#extra-gems)
 - [Features](#features)
+- [Hosting](#hosting)
 
 ## Getting Started
 
@@ -26,10 +28,10 @@
 
 ## Extra Gems
 
-# ```jwt``` - User authentication
-# ```bcrypt``` - Password hashing
-# ```rack-cors``` - Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible 
-# ```aws-sdk-s3``` - AWS-S3 Storage
+> ```jwt``` - User authentication</br>
+> ```bcrypt``` - Password hashing</br>
+> ```rack-cors``` - Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible </br>
+> ```aws-sdk-s3``` - AWS-S3 Storage
 
 ## Features
 
