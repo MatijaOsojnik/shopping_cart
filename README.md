@@ -1,24 +1,47 @@
-# README
+<h1 align="center"> Shopping Cart API </h1> <br>
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+<p align="center">
+  Shopping cart API built completely in Rails 7
+</p>
 
-Things you may want to cover:
+## Table of Contents
 
-* Ruby version
+- [Getting Started](#getting-started)
+- [Prerequisites](#prerequisites)
+- [Features](#features)
 
-* System dependencies
+## Getting Started
 
-* Configuration
+> 1. Clone/fork the project</br>
+> 2. Write: Write: bundle install </br>
+> 3. Write:  ```rake db:create```</br>
+> 5. Add secret variables for AWS3 </br>
+> 6. Run: ```rails s```
 
-* Database creation
+## Prerequisites
 
-* Database initialization
+* Ruby 
+* Ruby on Rails
+* PostgradeSQL
 
-* How to run the test suite
+## Extra Gems
 
-* Services (job queues, cache servers, search engines, etc.)
+# ```jwt``` - User authentication
+# ```bcrypt``` - Password hashing
+# ```rack-cors``` - Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible 
+# ```aws-sdk-s3``` - AWS-S3 Storage
 
-* Deployment instructions
+## Features
 
-* ...
+Shopping Cart API has the following features:
+
+- User authentication with JWT
+- Upload/Download CSV report of the user's cart with the help of AWS-S3
+- Cart CRUD operations
+- User can add, remove items from cart
+- User can clear cart
+- User can update the cart at once by changing the quantity of the cart items
+
+## Hosting
+
+The app is currently hosted on: <a href="https://shopping-cart-challenge-api.herokuapp.com">Heroku link</a>
